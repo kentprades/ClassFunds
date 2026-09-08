@@ -33,9 +33,8 @@
 
     a {
       position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 20px;
+      left: 100px;
       color: #fff;
       text-decoration: none;
       text-shadow: 1px 1px 2px black;
@@ -116,26 +115,41 @@
         </div>
       </form>
     </div>
-    <a style="left: 100px; bottom: 20px;" target="_blank" href="https://www.framer.com/@kevin-levron/">Framer Component</a>
+    <a target="_blank" href="https://www.framer.com/@kevin-levron/">Framer Component</a>
   </div>
 
   <script type="module">
-  import LiquidBackground from 'https://cdn.jsdelivr.net/npm/threejs-components@0.0.27/build/backgrounds/liquid1.min.js'
+    import LiquidBackground from 'https://cdn.jsdelivr.net/npm/threejs-components@0.0.27/build/backgrounds/liquid1.min.js'
 
-  const app = LiquidBackground(document.getElementById('canvas'))
+    const app = LiquidBackground(document.getElementById('canvas'))
 
-  // Don’t load any image — just use a solid dark gray
-  app.liquidPlane.material.color.set('#1a1a1a')   // dark gray base
-  app.liquidPlane.material.metalness = 0.75
-  app.liquidPlane.material.roughness = 0.25
+    // Dark gray liquid background
+    app.liquidPlane.material.color.set('#1a1a1a')
+    app.liquidPlane.material.metalness = 0.75
+    app.liquidPlane.material.roughness = 0.25
+    app.liquidPlane.uniforms.displacementScale.value = 5
+    app.setRain(false)
+  </script>
 
-  // Control ripple intensity
-  app.liquidPlane.uniforms.displacementScale.value = 5
+  <script>
+    // Login validation
+    function validateLogin(type) {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
 
-  // Disable rain overlay
-  app.setRain(false)
-</script>
+      if (type === "class" && user === "class3Auser" && pass === "class3Auser") {
+        window.location.href = "class.html";
+        return;
+      }
 
+      if (type === "admin" && user === "Adminkent" && pass === "@k3ntAsAdmin") {
+        window.location.href = "admin.html";
+        return;
+      }
+
+      alert("Invalid username or password!");
+    }
+  </script>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
