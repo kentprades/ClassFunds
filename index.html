@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Glassmorphism Login</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+      font-family: Arial, sans-serif;
+    }
+
+    .login-container {
+      width: 320px;
+      padding: 40px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #fff;
+    }
+
+    .login-container h2 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      outline: none;
+    }
+
+    .login-container input::placeholder {
+      color: #bbb;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-group button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn-group button:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login</h2>
+    <form onsubmit="return false">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <div class="btn-group">
+        <button type="button" onclick="validateLogin('class')">Class Login</button>
+        <button type="button" onclick="validateLogin('admin')">Admin Login</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function validateLogin(type) {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+
+      // Class account
+      if (type === "class" && user === "class3Auser" && pass === "class3Auser") {
+        window.location.href = "class.html";
+        return;
+      }
+
+      // Admin account
+      if (type === "admin" && user === "Adminkent" && pass === "@k3ntAsAdmin") {
+        window.location.href = "admin.html";
+        return;
+      }
+
+      alert("Invalid username or password!");
+    }
+  </script>
+</body>
+</html>

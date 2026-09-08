@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Audit Funds</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top left, #0a0a0a, #1a1a1a 70%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .admin-container {
+      width: 100%;
+      max-width: 800px;
+      padding: 30px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    h2 {
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      color: #00ffcc;
+      text-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+    }
+
+    h3 {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: #ddd;
+    }
+
+    .form-section {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.05);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #bbb;
+      font-style: italic;
+    }
+
+    input:focus, textarea:focus {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 12px rgba(0, 255, 204, 0.6);
+    }
+
+    textarea {
+      resize: none;
+      min-height: 80px;
+    }
+
+    .btn {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00ffcc, #0077ff);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+    }
+
+    .record {
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
+      transition: background 0.3s ease;
+    }
+
+    .record:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .record strong {
+      color: #00ffcc;
+    }
+
+    .edited-tag {
+      color: #ffcc00;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    #recordsList {
+      max-height: 350px;
+      overflow-y: auto;
+      padding-right: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: #00ffcc rgba(255, 255, 255, 0.05);
+    }
+
+    #recordsList::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #recordsList::-webkit-scrollbar-thumb {
+      background: #00ffcc;
+      border-radius: 4px;
+    }
+
+    #totalFunds {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #00ffcc;
+      text-align: center;
+      margin-top: -10px;
+    }
+
+    @media (max-width: 600px) {
+      .admin-container {
+        padding: 20px;
+      }
+      input, textarea, .btn {
+        font-size: 0.9rem;
+        padding: 12px;
+      }
+      .record {
+        font-size: 0.85rem;
+      }
+      .form-section {
+        gap: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <h2>Audit Class Funds</h2>
+
+    <div class="form-section">
+      <input type="number" id="funds" placeholder="Enter amount">
+      <h5 style="color:#bbb; font-size:0.9rem; margin:0;">(Date Received)</h5>
+      <input type="date" id="dateIn" placeholder="Date of Input">
+      <h5 style="color:#bbb; font-size:0.9rem; margin:0;">(Date Spent)</h5>
+      <input type="date" id="dateOut" placeholder="Date of Output">
+      <textarea id="desc" placeholder="Description"></textarea>
+    </div>
+
+    <button class="btn" id="actionBtn" onclick="addRecord()">Add Record</button>
+
+    <h3>Total Funds</h3>
+    <div id="totalFunds">₱0</div>
+
+    <h3>Existing Records</h3>
+    <div id="recordsList"></div>
+  </div>
+
+  <script>
+    function updateTotalFunds() {
+      const records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+      let total = 0;
+      records.forEach(rec => {
+        total += parseFloat(rec.funds) || 0;
+      });
+      document.getElementById("totalFunds").textContent = "₱" + total.toLocaleString();
+    }
+
+    function loadRecords() {
+      const records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+      const list = document.getElementById("recordsList");
+      list.innerHTML = "";
+
+      records.forEach((rec, index) => {
+        const div = document.createElement("div");
+        div.className = "record";
+        div.innerHTML = `
+          <p><strong>Amount:</strong> ₱${rec.funds}</p>
+          <p><strong>Date Received:</strong> ${rec.dateIn || "N/A"}</p>
+          <p><strong>Date Spent:</strong> ${rec.dateOut || "N/A"}</p>
+          <p><strong>Description:</strong> ${rec.desc || "N/A"}</p>
+          ${rec.edited ? `<p class="edited-tag">Edited on ${rec.editDate}</p>` : ""}
+          <button class="btn" onclick="editRecord(${index})">Edit</button>
+          <button class="btn" style="background:linear-gradient(135deg,#ff4444,#ff8800)" onclick="deleteRecord(${index})">Delete</button>
+        `;
+        list.appendChild(div);
+      });
+
+      updateTotalFunds(); // update total after loading
+    }
+
+    function addRecord() {
+      const funds = document.getElementById("funds").value;
+      const dateIn = document.getElementById("dateIn").value;
+      const dateOut = document.getElementById("dateOut").value;
+      const desc = document.getElementById("desc").value;
+
+      if (funds) {
+        const record = { funds, dateIn, dateOut, desc };
+        let records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+        records.push(record);
+        localStorage.setItem("classFundsRecords", JSON.stringify(records));
+        alert("Record added!");
+        resetForm();
+        loadRecords();
+      } else {
+        alert("Please enter a valid amount.");
+      }
+    }
+
+    function editRecord(index) {
+      let records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+      const rec = records[index];
+
+      document.getElementById("funds").value = rec.funds;
+      document.getElementById("dateIn").value = rec.dateIn;
+      document.getElementById("dateOut").value = rec.dateOut;
+      document.getElementById("desc").value = rec.desc;
+
+            const btn = document.getElementById("actionBtn");
+      btn.textContent = "Save Edit";
+      btn.onclick = function() {
+        rec.funds = document.getElementById("funds").value;
+        rec.dateIn = document.getElementById("dateIn").value;
+        rec.dateOut = document.getElementById("dateOut").value;
+        rec.desc = document.getElementById("desc").value;
+        rec.edited = true;
+        rec.editDate = new Date().toLocaleString();
+
+        records[index] = rec;
+        localStorage.setItem("classFundsRecords", JSON.stringify(records));
+        alert("Record updated!");
+        resetForm();
+        btn.textContent = "Add Record";
+        btn.onclick = addRecord;
+        loadRecords();
+      };
+    }
+
+    function deleteRecord(index) {
+      const passKey = prompt("Enter delete pass key:");
+      if (passKey === "d3l3t3K3y") {
+        let records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+        records.splice(index, 1);
+        localStorage.setItem("classFundsRecords", JSON.stringify(records));
+        alert("Record deleted successfully!");
+        loadRecords();
+      } else {
+        alert("Incorrect pass key. Deletion denied.");
+      }
+    }
+
+    function resetForm() {
+      document.getElementById("funds").value = "";
+      document.getElementById("dateIn").value = "";
+      document.getElementById("dateOut").value = "";
+      document.getElementById("desc").value = "";
+    }
+
+    loadRecords();
+  </script>
+</body>
+</html>
+

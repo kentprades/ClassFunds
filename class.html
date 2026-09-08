@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Funds</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+
+    .funds-container {
+      width: 500px;
+      padding: 40px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .funds-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #totalFunds {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #00ffcc;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .record {
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .record strong {
+      color: #00ffcc;
+    }
+
+    .edited {
+      color: #ffcc00;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="funds-container">
+    <h2>Class Funds History</h2>
+    <div id="totalFunds">₱0</div>
+    <div id="recordsList"></div>
+  </div>
+
+  <script>
+    const records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+    const list = document.getElementById("recordsList");
+
+    function updateTotalFunds() {
+      let total = 0;
+      records.forEach(rec => {
+        total += parseFloat(rec.funds) || 0;
+      });
+      document.getElementById("totalFunds").textContent = "₱" + total.toLocaleString();
+    }
+
+    if (records.length > 0) {
+      records.forEach(rec => {
+        const div = document.createElement("div");
+        div.className = "record";
+        div.innerHTML = `
+          <p><strong>Amount:</strong> ₱${rec.funds}</p>
+          <p><strong>Date Received:</strong> ${rec.dateIn || "N/A"}</p>
+          <p><strong>Date Spent:</strong> ${rec.dateOut || "N/A"}</p>
+          <p><strong>Description:</strong> ${rec.desc || "N/A"}</p>
+          ${rec.edited ? `<p class="edited"><em>Edited on ${rec.editDate}</em></p>` : ""}
+        `;
+        list.appendChild(div);
+      });
+      updateTotalFunds();
+    } else {
+      list.innerHTML = "<p>No records yet.</p>";
+      updateTotalFunds();
+    }
+  </script>
+</body>
+</html>
