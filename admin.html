@@ -165,6 +165,14 @@
       }
     }
   </style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Audit Funds</title>
+  <style>
+    /* keep your existing CSS here */
+  </style>
 </head>
 <body>
   <div class="admin-container">
@@ -173,9 +181,9 @@
     <div class="form-section">
       <input type="number" id="funds" placeholder="Enter amount">
       <h5 style="color:#bbb; font-size:0.9rem; margin:0;">(Date Received)</h5>
-      <input type="date" id="dateIn" placeholder="Date of Input">
+      <input type="date" id="dateIn">
       <h5 style="color:#bbb; font-size:0.9rem; margin:0;">(Date Spent)</h5>
-      <input type="date" id="dateOut" placeholder="Date of Output">
+      <input type="date" id="dateOut">
       <textarea id="desc" placeholder="Description"></textarea>
     </div>
 
@@ -189,21 +197,25 @@
   </div>
 
   <script>
-    function updateTotalFunds() {
-      const records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+    const API_BASE = window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : 'https://classfunds.onrender.com';
+
+    async function updateTotalFunds() {
+      const res = await fetch(`${API_BASE}/records`);
+      const records = await res.json();
       let total = 0;
-      records.forEach(rec => {
-        total += parseFloat(rec.funds) || 0;
-      });
+      records.forEach(rec => total += parseFloat(rec.funds) || 0);
       document.getElementById("totalFunds").textContent = "₱" + total.toLocaleString();
     }
 
-    function loadRecords() {
-      const records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
+    async function loadRecords() {
+      const res = await fetch(`${API_BASE}/records`);
+      const records = await res.json();
       const list = document.getElementById("recordsList");
       list.innerHTML = "";
 
-      records.forEach((rec, index) => {
+      records.forEach(rec => {
         const div = document.createElement("div");
         div.className = "record";
         div.innerHTML = `
@@ -212,26 +224,27 @@
           <p><strong>Date Spent:</strong> ${rec.dateOut || "N/A"}</p>
           <p><strong>Description:</strong> ${rec.desc || "N/A"}</p>
           ${rec.edited ? `<p class="edited-tag">Edited on ${rec.editDate}</p>` : ""}
-          <button class="btn" onclick="editRecord(${index})">Edit</button>
-          <button class="btn" style="background:linear-gradient(135deg,#ff4444,#ff8800)" onclick="deleteRecord(${index})">Delete</button>
+          <button class="btn" onclick="editRecord('${rec._id}')">Edit</button>
+          <button class="btn" style="background:linear-gradient(135deg,#ff4444,#ff8800)" onclick="deleteRecord('${rec._id}')">Delete</button>
         `;
         list.appendChild(div);
       });
 
-      updateTotalFunds(); // update total after loading
+      updateTotalFunds();
     }
 
-    function addRecord() {
+    async function addRecord() {
       const funds = document.getElementById("funds").value;
       const dateIn = document.getElementById("dateIn").value;
       const dateOut = document.getElementById("dateOut").value;
       const desc = document.getElementById("desc").value;
 
       if (funds) {
-        const record = { funds, dateIn, dateOut, desc };
-        let records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
-        records.push(record);
-        localStorage.setItem("classFundsRecords", JSON.stringify(records));
+        await fetch(`${API_BASE}/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ funds, dateIn, dateOut, desc })
+        });
         alert("Record added!");
         resetForm();
         loadRecords();
@@ -240,41 +253,27 @@
       }
     }
 
-    function editRecord(index) {
-      let records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
-      const rec = records[index];
+    async function editRecord(id) {
+      const newDesc = prompt("Enter new description:");
+      if (!newDesc) return;
 
-      document.getElementById("funds").value = rec.funds;
-      document.getElementById("dateIn").value = rec.dateIn;
-      document.getElementById("dateOut").value = rec.dateOut;
-      document.getElementById("desc").value = rec.desc;
-
-            const btn = document.getElementById("actionBtn");
-      btn.textContent = "Save Edit";
-      btn.onclick = function() {
-        rec.funds = document.getElementById("funds").value;
-        rec.dateIn = document.getElementById("dateIn").value;
-        rec.dateOut = document.getElementById("dateOut").value;
-        rec.desc = document.getElementById("desc").value;
-        rec.edited = true;
-        rec.editDate = new Date().toLocaleString();
-
-        records[index] = rec;
-        localStorage.setItem("classFundsRecords", JSON.stringify(records));
-        alert("Record updated!");
-        resetForm();
-        btn.textContent = "Add Record";
-        btn.onclick = addRecord;
-        loadRecords();
-      };
+      await fetch(`${API_BASE}/records/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ desc: newDesc, edited: true, editDate: new Date().toLocaleString() })
+      });
+      alert("Record updated!");
+      loadRecords();
     }
 
-    function deleteRecord(index) {
+    async function deleteRecord(id) {
       const passKey = prompt("Enter delete pass key:");
       if (passKey === "d3l3t3K3y") {
-        let records = JSON.parse(localStorage.getItem("classFundsRecords")) || [];
-        records.splice(index, 1);
-        localStorage.setItem("classFundsRecords", JSON.stringify(records));
+        await fetch(`${API_BASE}/records/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passKey })
+        });
         alert("Record deleted successfully!");
         loadRecords();
       } else {
@@ -289,8 +288,9 @@
       document.getElementById("desc").value = "";
     }
 
-    loadRecords();
+    document.addEventListener("DOMContentLoaded", loadRecords);
   </script>
 </body>
 </html>
+
 
